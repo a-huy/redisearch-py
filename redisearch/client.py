@@ -110,6 +110,7 @@ class Client(object):
     DEL_CMD = 'FT.DEL'
     AGGREGATE_CMD = 'FT.AGGREGATE'
     CURSOR_CMD = 'FT.CURSOR'
+    TAGVALS_CMD = 'FT.TAGVALS'
 
 
     NOOFFSETS = 'NOOFFSETS'
@@ -369,3 +370,6 @@ class Client(object):
 
         res = AggregateResult(rows, cursor, schema)
         return res
+
+    def tag_values(self, field_name):
+        return self.redis.execute_command(self.TAGVALS_CMD, self.index_name, field_name)
