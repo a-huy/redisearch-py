@@ -102,6 +102,7 @@ class Client(object):
 
     NUMERIC = 'NUMERIC'
 
+    INFO_CMD = 'FT.INFO'
     CREATE_CMD = 'FT.CREATE'
     SEARCH_CMD = 'FT.SEARCH'
     ADD_CMD = 'FT.ADD'
@@ -112,10 +113,16 @@ class Client(object):
     CURSOR_CMD = 'FT.CURSOR'
     TAGVALS_CMD = 'FT.TAGVALS'
 
+    # Commands for managing aliases
+    ALIASADD_CMD = 'FT.ALIASADD'
+    ALIASUPDATE_CMD = 'FT.ALIASUPDATE'
+    ALIASDEL_CMD = 'FT.ALIASDEL'
 
     NOOFFSETS = 'NOOFFSETS'
     NOFIELDS = 'NOFIELDS'
     STOPWORDS = 'STOPWORDS'
+    KEEPDOCS = 'KEEPDOCS'
+    DELETE_DOCUMENT = 'DD'
 
     class BatchIndexer(object):
         """
@@ -202,11 +209,14 @@ class Client(object):
 
         return self.redis.execute_command(*args)
 
-    def drop_index(self):
+    def drop_index(self, keepdocs=False):
         """
         Drop the index if it exists
         """
-        return self.redis.execute_command(self.DROP_CMD, self.index_name)
+        args = [self.DROP_CMD, self.index_name]
+        if keepdocs:
+            args.append(self.KEEPDOCS)
+        return self.redis.execute_command(*args)
 
     def _add_document(self, doc_id, conn=None, nosave=False, score=1.0, payload=None,
                       replace=False, partial=False, language=None, **fields):
@@ -258,7 +268,7 @@ class Client(object):
                                   payload=payload, replace=replace,
                                   partial=partial, language=language, **fields)
 
-    def delete_document(self, doc_id, conn=None):
+    def delete_document(self, doc_id, delete_document=False, conn=None):
         """
         Delete a document from index
         Returns 1 if the document was deleted, 0 if not
@@ -266,7 +276,11 @@ class Client(object):
         if conn is None:
             conn = self.redis
 
-        return conn.execute_command(self.DEL_CMD, self.index_name, doc_id)
+        args = [self.DEL_CMD, self.index_name, doc_id]
+        if delete_document:
+            args.append(self.DELETE_DOCUMENT)
+
+        return conn.execute_command(*args)
 
     def load_document(self, id):
         """
@@ -289,7 +303,7 @@ class Client(object):
         Get info an stats about the the current index, including the number of documents, memory consumption, etc
         """
 
-        res = self.redis.execute_command('FT.INFO', self.index_name)
+        res = self.redis.execute_command(self.INFO_CMD, self.index_name)
         it = six.moves.map(to_string, res)
         return dict(six.moves.zip(it, it))
 
@@ -373,3 +387,16 @@ class Client(object):
 
     def tag_values(self, field_name):
         return self.redis.execute_command(self.TAGVALS_CMD, self.index_name, field_name)
+
+    def add_alias(self, alias, index_name=None):
+        if index_name is None:
+            index_name = self.index_name
+        return self.redis.execute_command(self.ALIASADD_CMD, alias, index_name)
+
+    def update_alias(self, alias, index_name=None):
+        if index_name is None:
+            index_name = self.index_name
+        return self.redis.execute_command(self.ALIASUPDATE_CMD, alias, index_name)
+
+    def delete_alias(self, alias):
+        return self.redis.execute_command(self.ALIASDEL_CMD, alias)
