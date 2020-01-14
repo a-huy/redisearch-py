@@ -35,11 +35,21 @@ jobs:
           key: v1-dependencies-{{ checksum "requirements.txt" }}
 
       - run:
+          name: test dist
+          command: python setup.py sdist
+
+      - run:
           name: run tests
           command: |
             . venv/bin/activate
             REDIS_PORT=6379 coverage run test/test.py
             codecov
+
+      - run:
+          name: run query builder tests
+          command: |
+            . venv/bin/activate
+            REDIS_PORT=6379 python test/test_builder.py
             
       - store_artifacts:
           path: test-reports
@@ -77,7 +87,13 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
-            REDIS_PORT=6379 python test/test.py 
+            REDIS_PORT=6379 python test/test.py
+
+      - run:
+          name: run query builder tests
+          command: |
+            . venv/bin/activate
+            REDIS_PORT=6379 python test/test_builder.py
 
       # no need for store_artifacts on nightly builds 
 

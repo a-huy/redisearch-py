@@ -38,10 +38,9 @@ class TextField(Field):
 
     def __init__(self, name, weight=1.0, sortable=False, no_stem=False,
                  no_index=False):
-        args = [Field.TEXT]
+        args = [Field.TEXT, Field.WEIGHT, weight]
         if no_stem:
             args.append(self.NOSTEM)
-        args += [Field.WEIGHT, weight]
         if sortable:
             args.append(Field.SORTABLE)
         if no_index:
@@ -85,14 +84,18 @@ class TagField(Field):
     See http://redisearch.io/Tags/
     """
     def __init__(self, name, separator = ',', no_index=False):
-        Field.__init__(self, name, Field.TAG)
-        if separator != ',':
-            self.args.append(Field.SEPARATOR)
-            self.args.append(separator)
+        args = [Field.TAG, Field.SEPARATOR, separator]
 
         if no_index:
+<<<<<<< HEAD
             self.args.append(Field.NOINDEX)
 
+=======
+            args.append(Field.NOINDEX)
+
+        Field.__init__(self, name, *args)
+
+>>>>>>> b98606c2f3c12582f2bf4c6bb7adb4f54b4970f0
 
 class Client(object):
     """
@@ -104,6 +107,7 @@ class Client(object):
 
     INFO_CMD = 'FT.INFO'
     CREATE_CMD = 'FT.CREATE'
+    ALTER_CMD = 'FT.ALTER'
     SEARCH_CMD = 'FT.SEARCH'
     ADD_CMD = 'FT.ADD'
     DROP_CMD = 'FT.DROP'
@@ -209,7 +213,26 @@ class Client(object):
 
         return self.redis.execute_command(*args)
 
+<<<<<<< HEAD
     def drop_index(self, keepdocs=False):
+=======
+    def alter_schema_add(self, fields):
+        """
+        Alter the existing search index by adding new fields. The index must already exist.
+
+        ### Parameters:
+
+        - **fields**: a list of Field objects to add for the index
+        """
+
+        args = [self.ALTER_CMD, self.index_name, 'SCHEMA', 'ADD']
+
+        args += list(itertools.chain(*(f.redis_args() for f in fields)))
+
+        return self.redis.execute_command(*args)
+
+    def drop_index(self):
+>>>>>>> b98606c2f3c12582f2bf4c6bb7adb4f54b4970f0
         """
         Drop the index if it exists
         """
@@ -384,6 +407,7 @@ class Client(object):
 
         res = AggregateResult(rows, cursor, schema)
         return res
+<<<<<<< HEAD
 
     def tag_values(self, field_name):
         return self.redis.execute_command(self.TAGVALS_CMD, self.index_name, field_name)
@@ -400,3 +424,5 @@ class Client(object):
 
     def delete_alias(self, alias):
         return self.redis.execute_command(self.ALIASDEL_CMD, alias)
+=======
+>>>>>>> b98606c2f3c12582f2bf4c6bb7adb4f54b4970f0
