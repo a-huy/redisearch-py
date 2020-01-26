@@ -87,15 +87,10 @@ class TagField(Field):
         args = [Field.TAG, Field.SEPARATOR, separator]
 
         if no_index:
-<<<<<<< HEAD
-            self.args.append(Field.NOINDEX)
-
-=======
             args.append(Field.NOINDEX)
 
         Field.__init__(self, name, *args)
 
->>>>>>> b98606c2f3c12582f2bf4c6bb7adb4f54b4970f0
 
 class Client(object):
     """
@@ -213,9 +208,6 @@ class Client(object):
 
         return self.redis.execute_command(*args)
 
-<<<<<<< HEAD
-    def drop_index(self, keepdocs=False):
-=======
     def alter_schema_add(self, fields):
         """
         Alter the existing search index by adding new fields. The index must already exist.
@@ -231,8 +223,7 @@ class Client(object):
 
         return self.redis.execute_command(*args)
 
-    def drop_index(self):
->>>>>>> b98606c2f3c12582f2bf4c6bb7adb4f54b4970f0
+    def drop_index(self, keepdocs=False):
         """
         Drop the index if it exists
         """
@@ -407,7 +398,6 @@ class Client(object):
 
         res = AggregateResult(rows, cursor, schema)
         return res
-<<<<<<< HEAD
 
     def tag_values(self, field_name):
         return self.redis.execute_command(self.TAGVALS_CMD, self.index_name, field_name)
@@ -424,5 +414,3 @@ class Client(object):
 
     def delete_alias(self, alias):
         return self.redis.execute_command(self.ALIASDEL_CMD, alias)
-=======
->>>>>>> b98606c2f3c12582f2bf4c6bb7adb4f54b4970f0
